@@ -174,13 +174,24 @@ if(NOT MLX_METAL_JIT)
 
 endif()
 
-add_custom_command(
-  OUTPUT ${MLX_METAL_PATH}/mlx.metallib
-  COMMAND xcrun -sdk macosx metal ${KERNEL_AIR} -o
-          ${MLX_METAL_PATH}/mlx.metallib
-  DEPENDS ${KERNEL_AIR}
-  COMMENT "Building mlx.metallib"
-  VERBATIM)
+# Use pre-built metallib - copy instead of building from .air files
+# This allows building without the metal compiler (xcrun metal)
+if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/mlx.metallib)
+  add_custom_command(
+    OUTPUT ${MLX_METAL_PATH}/mlx.metallib
+    COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/mlx.metallib ${MLX_METAL_PATH}/mlx.metallib
+    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/mlx.metallib
+    COMMENT "Copying pre-built mlx.metallib"
+    VERBATIM)
+else()
+  add_custom_command(
+    OUTPUT ${MLX_METAL_PATH}/mlx.metallib
+    COMMAND xcrun -sdk macosx metal ${KERNEL_AIR} -o
+            ${MLX_METAL_PATH}/mlx.metallib
+    DEPENDS ${KERNEL_AIR}
+    COMMENT "Building mlx.metallib"
+    VERBATIM)
+endif()
 
 add_custom_target(mlx-metallib DEPENDS ${MLX_METAL_PATH}/mlx.metallib)
 

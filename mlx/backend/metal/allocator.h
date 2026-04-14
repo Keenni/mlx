@@ -4,6 +4,7 @@
 
 #include <map>
 #include <mutex>
+#include <string>
 #include <vector>
 
 #include "mlx/allocator.h"
@@ -73,6 +74,20 @@ class MetalAllocator : public allocator::Allocator {
   size_t resource_limit_{0};
 
   std::mutex mutex_;
+
+  // mmap-based allocation for large buffers (SSD offloading)
+  bool use_mmap_{false};
+  std::string mmap_dir_;
+
+  struct MmapInfo {
+    void* ptr;
+    size_t size;
+    std::string filename;
+  };
+  std::map<MTL::Buffer*, MmapInfo> mmap_info_;
+  std::mutex mmap_mutex_;
+
+  MTL::Buffer* allocate_mmap_buffer(size_t size);
 };
 
 MetalAllocator& allocator();
